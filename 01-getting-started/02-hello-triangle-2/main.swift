@@ -57,7 +57,7 @@ func main()
     // Vertex shader
     let vertexShader = glCreateShader(type: GL_VERTEX_SHADER)
     vertexShaderSource.withCString {
-        var s = UnsafePointer<Int8>($0)
+        var s = [$0]
         glShaderSource(shader: vertexShader, count: 1, string: &s, length: nil)
     }
     glCompileShader(vertexShader)
@@ -73,7 +73,7 @@ func main()
     // Fragment shader
     let fragmentShader = glCreateShader(type: GL_FRAGMENT_SHADER)
     fragmentShaderSource.withCString {
-        var s = UnsafePointer<Int8>($0)
+        var s = [$0]
         glShaderSource(shader: fragmentShader, count: 1, string: &s, length: nil)
     }
     glCompileShader(fragmentShader)
@@ -81,7 +81,7 @@ func main()
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success)
     guard success == GL_TRUE else
     {
-        glGetShaderInfoLog(fragmentShader, 512, nil, &infoLog)
+        glGetProgramInfoLog(fragmentShader, 512, nil, &infoLog)
         fatalError(String.fromCString(infoLog)!)
     }
     // Link shaders

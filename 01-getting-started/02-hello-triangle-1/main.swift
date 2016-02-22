@@ -57,7 +57,7 @@ func main()
     // Vertex shader
     let vertexShader = glCreateShader(type: GL_VERTEX_SHADER)
     vertexShaderSource.withCString {
-        var s = UnsafePointer<Int8>($0)
+        var s = [$0]
         glShaderSource(shader: vertexShader, count: 1, string: &s, length: nil)
     }
     glCompileShader(vertexShader)
@@ -73,7 +73,7 @@ func main()
     // Fragment shader
     let fragmentShader = glCreateShader(type: GL_FRAGMENT_SHADER)
     fragmentShaderSource.withCString {
-        var s = UnsafePointer<Int8>($0)
+        var s = [$0]
         glShaderSource(shader: fragmentShader, count: 1, string: &s, length: nil)
     }
     glCompileShader(fragmentShader)
@@ -94,7 +94,7 @@ func main()
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success)
     guard success == GL_TRUE else
     {
-        glGetShaderInfoLog(shaderProgram, 512, nil, &infoLog)
+        glGetProgramInfoLog(shaderProgram, 512, nil, &infoLog)
         fatalError(String.fromCString(infoLog)!)
     }
     // We no longer need these since they are in the shader program
@@ -104,14 +104,14 @@ func main()
             
     // Set up vertex data (and buffer(s)) and attribute pointers)
     let vertices:[GLfloat] = [
-     // First triangle
       -0.5, -0.5, 0.0, // bottom-left
        0.5, -0.5, 0.0, // bottom-right
        0.0,  0.5, 0.0  // top-center
     ]
-    var VBO:GLuint=0, VAO:GLuint=0, EBO:GLuint=0
+    var VAO:GLuint = 0
     glGenVertexArrays(n: 1, arrays: &VAO)
     defer { glDeleteVertexArrays(1, &VAO) }
+    var VBO:GLuint = 0
     glGenBuffers(n: 1, buffers: &VBO)
     defer { glDeleteBuffers(1, &VBO) }
     // Bind the Vertex Array Object first, then bind and set
