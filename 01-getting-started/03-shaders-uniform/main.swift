@@ -3,6 +3,11 @@
 // Import the required libraries
 import CGLFW3
 import SGLOpenGL
+#if os(Linux)
+    import Glibc
+#else
+    import Darwin.C
+#endif
 
 // Window dimensions
 let WIDTH:GLsizei = 800, HEIGHT:GLsizei = 600
@@ -10,15 +15,20 @@ let WIDTH:GLsizei = 800, HEIGHT:GLsizei = 600
 // Shaders
 let vertexShaderSource = "#version 330 core\n" +
     "layout (location = 0) in vec3 position;\n" +
+    "layout (location = 1) in vec3 color;\n" +
+    "out vec4 vertexColor;\n" +
     "void main()\n" +
     "{\n" +
-    "gl_Position = vec4(position.x, position.y, position.z, 1.0);\n" +
+    "gl_Position = vec4(position, 1.0);\n" +
+    "vertexColor = vec4(0.5f, 0.0f, 0.0f, 1.0f);\n" +
     "}\n"
 let fragmentShaderSource = "#version 330 core\n" +
     "out vec4 color;\n" +
+    "in vec4 vertexColor;\n" +
+    "uniform vec4 ourColor;\n" +
     "void main()\n" +
     "{\n" +
-    "color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n" +
+    "color = ourColor;\n" +
     "}\n"
 
 // The *main* function; where our program begins running
@@ -102,34 +112,17 @@ func main()
     glDeleteShader(fragmentShader)
       
             
-    // Set up vertex data (and buffer(s)) and attribute pointers)
-    //let vertices:[GLfloat] = [
-    //  // First triangle
-    //   0.5,  0.5,  // Top Right
-    //   0.5, -0.5,  // Bottom Right
-    //  -0.5,  0.5,  // Top Left 
-    //  // Second triangle
-    //   0.5, -0.5,  // Bottom Right
-    //  -0.5, -0.5,  // Bottom Left
-    //  -0.5,  0.5   // Top Left
-    //]
+    // Set up vertex data
     let vertices:[GLfloat] = [
-         0.5,  0.5, 0.0,  // Top Right
          0.5, -0.5, 0.0,  // Bottom Right
         -0.5, -0.5, 0.0,  // Bottom Left
-        -0.5,  0.5, 0.0   // Top Left 
+         0.0,  0.5, 0.0   // Top
     ]
-    let indices:[GLuint] = [  // Note that we start from 0!
-        0, 1, 3,  // First Triangle
-        1, 2, 3   // Second Triangle
-    ]
-    var VBO:GLuint=0, VAO:GLuint=0, EBO:GLuint=0
+    var VBO:GLuint=0, VAO:GLuint=0
     glGenVertexArrays(n: 1, arrays: &VAO)
     defer { glDeleteVertexArrays(1, &VAO) }
     glGenBuffers(n: 1, buffers: &VBO)
     defer { glDeleteBuffers(1, &VBO) }
-    glGenBuffers(n: 1, buffers: &EBO)
-    defer { glDeleteBuffers(1, &EBO) }
     // Bind the Vertex Array Object first, then bind and set
     // vertex buffer(s) and attribute pointer(s).
     glBindVertexArray(VAO)
@@ -138,11 +131,6 @@ func main()
     glBufferData(target: GL_ARRAY_BUFFER, 
         size: strideof(GLfloat) * vertices.count,
         data: vertices, usage: GL_STATIC_DRAW)
-
-    glBindBuffer(target: GL_ELEMENT_ARRAY_BUFFER, buffer: EBO)
-    glBufferData(target: GL_ELEMENT_ARRAY_BUFFER, 
-        size: strideof(GLuint) * indices.count,
-        data: indices, usage: GL_STATIC_DRAW)
 
     glVertexAttribPointer(index: 0, size: 3, type: GL_FLOAT,
         normalized: false, stride: GLsizei(strideof(GLfloat) * 3), pointer: nil)
@@ -155,11 +143,7 @@ func main()
     glBindVertexArray(0) // Unbind VAO; it's always a good thing to
         // unbind any buffer/array to prevent strange bugs.
         // remember: do NOT unbind the EBO, keep it bound to this VAO.
-        
 
-    // Uncommenting this call will result in wireframe polygons.
-    // glPolygonMode(face: GL_FRONT_AND_BACK, mode: GL_LINE)
-      
 
     // Game loop
     while glfwWindowShouldClose(window) == GL_FALSE
@@ -176,8 +160,15 @@ func main()
         
         // Draw our first triangle
         glUseProgram(shaderProgram)
+        
+        // Update the uniform color
+        let timeValue = glfwGetTime()
+        let greenValue = (sin(timeValue) / 2) + 0.5
+        let vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor")
+        glUniform4f(vertexColorLocation, 0.0, Float(greenValue), 0.0, 1.0)
+               
         glBindVertexArray(VAO)
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nil)
+        glDrawArrays(GL_TRIANGLES, 0, 3)
         glBindVertexArray(0)
 
         // Swap the screen buffers
