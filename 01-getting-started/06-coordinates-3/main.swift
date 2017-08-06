@@ -73,19 +73,19 @@ func main()
 
     glBindBuffer(target: GL_ARRAY_BUFFER, buffer: VBO)
     glBufferData(target: GL_ARRAY_BUFFER, 
-        size: strideof(GLfloat) * vertices.count,
+        size: MemoryLayout<GLfloat>.stride * vertices.count,
         data: vertices, usage: GL_STATIC_DRAW)
         
     // Position attribute
-    let pointer0offset = UnsafePointer<Void>(bitPattern: 0)
+    let pointer0offset = UnsafeRawPointer(bitPattern: 0)
     glVertexAttribPointer(index: 0, size: 3, type: GL_FLOAT,
-        normalized: false, stride: GLsizei(strideof(GLfloat) * 5), pointer: pointer0offset)
+        normalized: false, stride: GLsizei(MemoryLayout<GLfloat>.stride * 5), pointer: pointer0offset)
     glEnableVertexAttribArray(0)
 
     // TexCoord attribute
-    let pointer1offset = UnsafePointer<Void>(bitPattern: strideof(GLfloat) * 3)
+    let pointer1offset = UnsafeRawPointer(bitPattern: MemoryLayout<GLfloat>.stride * 3)
     glVertexAttribPointer(index: 1, size: 2, type: GL_FLOAT,
-        normalized: false, stride: GLsizei(strideof(GLfloat) * 5), pointer: pointer1offset)
+        normalized: false, stride: GLsizei(MemoryLayout<GLfloat>.stride * 5), pointer: pointer1offset)
     glEnableVertexAttribArray(1)
 
     glBindBuffer(target: GL_ARRAY_BUFFER, buffer: 0) // Note that this is allowed,
@@ -198,26 +198,32 @@ func main()
         let viewLoc = glGetUniformLocation(ourShader.program, "view")
         let projLoc = glGetUniformLocation(ourShader.program, "projection")
         // Pass them to the shaders
-        withUnsafePointer(&view, {
-            glUniformMatrix4fv(viewLoc, 1, false, UnsafePointer($0))
+        withUnsafePointer(to: &view, {
+            $0.withMemoryRebound(to: GLfloat.self, capacity: 4 * 4) {
+                glUniformMatrix4fv(viewLoc, 1, false, $0)
+            }
         })
         // Note: currently we set the projection matrix each frame, but since
         // the projection matrix rarely changes it's often best practice to
         // set it outside the main loop only once.
-        withUnsafePointer(&projection, {
-            glUniformMatrix4fv(projLoc, 1, false, UnsafePointer($0))
+        withUnsafePointer(to: &projection, {
+            $0.withMemoryRebound(to: GLfloat.self, capacity: 4 * 4) {
+                glUniformMatrix4fv(projLoc, 1, false, $0)
+            }
         })
         
         // Draw container
         glBindVertexArray(VAO)
 
         let modelLoc = glGetUniformLocation(ourShader.program, "model")
-        for (index, cubePosition) in cubePositions.enumerate() {
+        for (index, cubePosition) in cubePositions.enumerated() {
           var model = mat4()
           model = SGLMath.translate(model, cubePosition)
           model = SGLMath.rotate(model, Float(index), vec3(0.5, 1.0, 0.0))
-          withUnsafePointer(&model, {
-              glUniformMatrix4fv(modelLoc, 1, false, UnsafePointer($0))
+          withUnsafePointer(to: &model, {
+            $0.withMemoryRebound(to: GLfloat.self, capacity: 4 * 4) {
+              glUniformMatrix4fv(modelLoc, 1, false, $0)
+            }
           })
           glDrawArrays(GL_TRIANGLES, 0, 36)
         }
@@ -230,7 +236,7 @@ func main()
 }
 
 // called whenever a key is pressed/released via GLFW
-func keyCallback(window: COpaquePointer, key: Int32, scancode: Int32, action: Int32, mode: Int32)
+func keyCallback(window: OpaquePointer!, key: Int32, scancode: Int32, action: Int32, mode: Int32)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GL_TRUE)

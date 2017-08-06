@@ -75,30 +75,30 @@ func main()
 
     glBindBuffer(target: GL_ARRAY_BUFFER, buffer: VBO)
     glBufferData(target: GL_ARRAY_BUFFER, 
-        size: strideof(GLfloat) * vertices.count,
+        size: MemoryLayout<GLfloat>.stride * vertices.count,
         data: vertices, usage: GL_STATIC_DRAW)
         
     glBindBuffer(target: GL_ELEMENT_ARRAY_BUFFER, buffer: EBO)
     glBufferData(target: GL_ELEMENT_ARRAY_BUFFER, 
-        size: strideof(GLuint) * indices.count,
+        size: MemoryLayout<GLuint>.stride * indices.count,
         data: indices, usage: GL_STATIC_DRAW)
 
     // Position attribute
-    let pointer0offset = UnsafePointer<Void>(bitPattern: 0)
+    let pointer0offset = UnsafeRawPointer(bitPattern: 0)
     glVertexAttribPointer(index: 0, size: 3, type: GL_FLOAT,
-        normalized: false, stride: GLsizei(strideof(GLfloat) * 8), pointer: pointer0offset)
+        normalized: false, stride: GLsizei(MemoryLayout<GLfloat>.stride * 8), pointer: pointer0offset)
     glEnableVertexAttribArray(0)
 
     // Color attribute
-    let pointer1offset = UnsafePointer<Void>(bitPattern: strideof(GLfloat) * 3)
+    let pointer1offset = UnsafeRawPointer(bitPattern: MemoryLayout<GLfloat>.stride * 3)
     glVertexAttribPointer(index: 1, size: 3, type: GL_FLOAT,
-        normalized: false, stride: GLsizei(strideof(GLfloat) * 8), pointer: pointer1offset)
+        normalized: false, stride: GLsizei(MemoryLayout<GLfloat>.stride * 8), pointer: pointer1offset)
     glEnableVertexAttribArray(1)
 
     // TexCoord attribute
-    let pointer2offset = UnsafePointer<Void>(bitPattern: strideof(GLfloat) * 6)
+    let pointer2offset = UnsafeRawPointer(bitPattern: MemoryLayout<GLfloat>.stride * 6)
     glVertexAttribPointer(index: 2, size: 2, type: GL_FLOAT,
-        normalized: false, stride: GLsizei(strideof(GLfloat) * 8), pointer: pointer2offset)
+        normalized: false, stride: GLsizei(MemoryLayout<GLfloat>.stride * 8), pointer: pointer2offset)
     glEnableVertexAttribArray(2)
 
     glBindBuffer(target: GL_ARRAY_BUFFER, buffer: 0) // Note that this is allowed,
@@ -172,7 +172,7 @@ func main()
 }
 
 // called whenever a key is pressed/released via GLFW
-func keyCallback(window: COpaquePointer, key: Int32, scancode: Int32, action: Int32, mode: Int32)
+func keyCallback(window: OpaquePointer!, key: Int32, scancode: Int32, action: Int32, mode: Int32)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GL_TRUE)
