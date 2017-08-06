@@ -63,12 +63,12 @@ func main()
     glCompileShader(vertexShader)
     // Check for compile time errors
     var success:GLint = 0
-    var infoLog = [GLchar](count: 512, repeatedValue: 0)
+    var infoLog = [GLchar](repeating: 0, count: 512)
     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success)
     guard success == GL_TRUE else
     {
         glGetShaderInfoLog(vertexShader, 512, nil, &infoLog)
-        fatalError(String.fromCString(infoLog)!)
+        fatalError(String(cString:infoLog))
     }
     // Fragment shader
     let fragmentShader = glCreateShader(type: GL_FRAGMENT_SHADER)
@@ -82,7 +82,7 @@ func main()
     guard success == GL_TRUE else
     {
         glGetProgramInfoLog(fragmentShader, 512, nil, &infoLog)
-        fatalError(String.fromCString(infoLog)!)
+        fatalError(String(cString:infoLog))
     }
     // Link shaders
     let shaderProgram = glCreateProgram()
@@ -95,7 +95,7 @@ func main()
     guard success == GL_TRUE else
     {
         glGetShaderInfoLog(shaderProgram, 512, nil, &infoLog)
-        fatalError(String.fromCString(infoLog)!)
+        fatalError(String(cString:infoLog))
     }
     // We no longer need these since they are in the shader program
     glDeleteShader(vertexShader)
@@ -136,16 +136,16 @@ func main()
 
     glBindBuffer(target: GL_ARRAY_BUFFER, buffer: VBO)
     glBufferData(target: GL_ARRAY_BUFFER, 
-        size: strideof(GLfloat) * vertices.count,
+        size: MemoryLayout<GLfloat>.stride * vertices.count,
         data: vertices, usage: GL_STATIC_DRAW)
 
     glBindBuffer(target: GL_ELEMENT_ARRAY_BUFFER, buffer: EBO)
     glBufferData(target: GL_ELEMENT_ARRAY_BUFFER, 
-        size: strideof(GLuint) * indices.count,
+        size: MemoryLayout<GLuint>.stride * indices.count,
         data: indices, usage: GL_STATIC_DRAW)
 
     glVertexAttribPointer(index: 0, size: 3, type: GL_FLOAT,
-        normalized: false, stride: GLsizei(strideof(GLfloat) * 3), pointer: nil)
+        normalized: false, stride: GLsizei(MemoryLayout<GLfloat>.stride * 3), pointer: nil)
     glEnableVertexAttribArray(0)
 
     glBindBuffer(target: GL_ARRAY_BUFFER, buffer: 0) // Note that this is allowed,
@@ -186,7 +186,7 @@ func main()
 }
 
 // called whenever a key is pressed/released via GLFW
-func keyCallback(window: COpaquePointer, key: Int32, scancode: Int32, action: Int32, mode: Int32)
+func keyCallback(window: OpaquePointer!, key: Int32, scancode: Int32, action: Int32, mode: Int32)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GL_TRUE)

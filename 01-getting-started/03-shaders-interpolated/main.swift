@@ -72,12 +72,12 @@ func main()
     glCompileShader(vertexShader)
     // Check for compile time errors
     var success:GLint = 0
-    var infoLog = [GLchar](count: 512, repeatedValue: 0)
+    var infoLog = [GLchar](repeating: 0, count: 512)
     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success)
     guard success == GL_TRUE else
     {
         glGetShaderInfoLog(vertexShader, 512, nil, &infoLog)
-        fatalError(String.fromCString(infoLog)!)
+        fatalError(String(cString:infoLog))
     }
     // Fragment shader
     let fragmentShader = glCreateShader(type: GL_FRAGMENT_SHADER)
@@ -91,7 +91,7 @@ func main()
     guard success == GL_TRUE else
     {
         glGetProgramInfoLog(fragmentShader, 512, nil, &infoLog)
-        fatalError(String.fromCString(infoLog)!)
+        fatalError(String(cString:infoLog))
     }
     // Link shaders
     let shaderProgram = glCreateProgram()
@@ -104,7 +104,7 @@ func main()
     guard success == GL_TRUE else
     {
         glGetShaderInfoLog(shaderProgram, 512, nil, &infoLog)
-        fatalError(String.fromCString(infoLog)!)
+        fatalError(String(cString:infoLog))
     }
     // We no longer need these since they are in the shader program
     glDeleteShader(vertexShader)
@@ -128,17 +128,17 @@ func main()
 
     glBindBuffer(target: GL_ARRAY_BUFFER, buffer: VBO)
     glBufferData(target: GL_ARRAY_BUFFER, 
-        size: strideof(GLfloat) * vertices.count,
+        size: MemoryLayout<GLfloat>.stride * vertices.count,
         data: vertices, usage: GL_STATIC_DRAW)
 
-    let pointer0offset = UnsafePointer<Void>(bitPattern: 0)
+    let pointer0offset = UnsafeRawPointer(bitPattern: 0)
     glVertexAttribPointer(index: 0, size: 3, type: GL_FLOAT,
-        normalized: false, stride: GLsizei(strideof(GLfloat) * 6), pointer: pointer0offset)
+        normalized: false, stride: GLsizei(MemoryLayout<GLfloat>.stride * 6), pointer: pointer0offset)
     glEnableVertexAttribArray(0)
 
-    let pointer1offset = UnsafePointer<Void>(bitPattern: strideof(GLfloat) * 3)
+    let pointer1offset = UnsafeRawPointer(bitPattern: MemoryLayout<GLfloat>.stride * 3)
     glVertexAttribPointer(index: 1, size: 3, type: GL_FLOAT,
-        normalized: false, stride: GLsizei(strideof(GLfloat) * 6), pointer: pointer1offset)
+        normalized: false, stride: GLsizei(MemoryLayout<GLfloat>.stride * 6), pointer: pointer1offset)
     glEnableVertexAttribArray(1)
 
     glBindBuffer(target: GL_ARRAY_BUFFER, buffer: 0) // Note that this is allowed,
@@ -179,7 +179,7 @@ func main()
 }
 
 // called whenever a key is pressed/released via GLFW
-func keyCallback(window: COpaquePointer, key: Int32, scancode: Int32, action: Int32, mode: Int32)
+func keyCallback(window: OpaquePointer!, key: Int32, scancode: Int32, action: Int32, mode: Int32)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GL_TRUE)
