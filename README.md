@@ -1,7 +1,6 @@
 # Example code for SwiftGL
 
-[SwiftGL Home Page]
-(http://www.swiftgl.org)
+[SwiftGL Home Page](http://www.swiftgl.org)
 
 *MacOS:*
 ```bash
