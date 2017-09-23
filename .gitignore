@@ -3,4 +3,4 @@
 Packages
 xcuserdata
 *.xcworkspace
-**/Package.pins
+**/Package.resolved
